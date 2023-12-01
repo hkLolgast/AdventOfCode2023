@@ -9,55 +9,35 @@ def parse_example():
 def format_input(inp: list[str]):
     return inp
 
+def find_first(line, include_written):
+    subs = list(map(str, range(10)))
+    if include_written:
+        subs += ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']        
+    for i in range(len(line)):
+        for v, s in enumerate(subs):
+            if line[i:].startswith(s):
+                return v % 10
+            
+def find_last(line, include_written):
+    subs = list(map(str, range(10)))
+    if include_written:
+        subs += ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']        
+    for i in range(len(line) - 1, -1, -1):
+        for v, s in enumerate(subs):
+            if line[i:].startswith(s):
+                return v % 10
+
 def solve(inp: list[str], part, example):
     s = 0
-    if part == 2:
-        for line in inp:
-            first = None
-            for i in range(len(line)):
-                try:
-                    v = int(line[i])
-                    first = line[i]
-                    break
-                except ValueError:
-                    pass
-                for j, num in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']):
-                    if line[i:].startswith(num):
-                        first = str(j)
-                        break
-                if first:
-                    break
-            for i in range(len(line)-1, -1, -1):
-                try:
-                    v = int(line[i])
-                    s += int(first + str(v))
-                    break
-                except ValueError:
-                    pass
-                for j, num in enumerate(['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']):
-                    if line[i:].startswith(num):
-                        s += int(first + str(j))
-                        break
-                else:
-                    continue
-                break
-
-        return s
     for line in inp:
-        for c in line:
-            try:
-                v = int(c)
-                first = c
-                break
-            except ValueError:
-                continue
-        for c in line[::-1]:
-            try:
-                v = int(c)
-                s += int(first + c)
-                break
-            except ValueError:
-                continue
+        first = str(find_first(line, part == 2))
+        last = str(find_last(line, part == 2))
+        try:
+            s += int(first + last)
+        except:
+            if not example:     # Example for part 2 has invalid input for 1
+                print(line)
+                raise
     return s
 
 def main():

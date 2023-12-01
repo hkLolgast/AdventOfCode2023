@@ -9,29 +9,22 @@ def parse_example():
 def format_input(inp: list[str]):
     return inp
 
-def find_first(line, include_written):
+def find(line, include_written, reverse):
     subs = list(map(str, range(10)))
     if include_written:
         subs += ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']        
-    for i in range(len(line)):
+    for i in range(len(line) - 1, -1, -1) if reverse else range(len(line)):
         for v, s in enumerate(subs):
-            if line[i:].startswith(s):
-                return v % 10
-            
-def find_last(line, include_written):
-    subs = list(map(str, range(10)))
-    if include_written:
-        subs += ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']        
-    for i in range(len(line) - 1, -1, -1):
-        for v, s in enumerate(subs):
+            if s == 'zero':
+                continue
             if line[i:].startswith(s):
                 return v % 10
 
 def solve(inp: list[str], part, example):
     s = 0
     for line in inp:
-        first = str(find_first(line, part == 2))
-        last = str(find_last(line, part == 2))
+        first = str(find(line, part == 2, False))
+        last = str(find(line, part == 2, True))
         try:
             s += int(first + last)
         except:

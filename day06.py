@@ -7,31 +7,32 @@ def parse_example():
     return parse_input('day06example.txt')
 
 def format_input(inp: list[str]):
-    times = list(map(int, inp[0].split()[1:]))
-    distances = list(map(int, inp[1].split()[1:]))
+    times = inp[0].split()[1:]
+    distances = inp[1].split()[1:]
     return times, distances
+
+def distance(charge_time, total_time):
+    return charge_time * (total_time - charge_time)
+
+def find(min_time, max_time, total_time, min_distance, depth = 0):
+    if max_time - min_time == 1:
+        return max_time
+    avg = (max_time + min_time) // 2
+    if distance(avg, total_time) > min_distance:
+        return find(min_time, avg, total_time, min_distance, depth + 1)
+    return find(avg, max_time, total_time, min_distance, depth + 1)
 
 def solve(inp, part, example):
     times, distances = inp
     if part == 2:
-        s = ''
-        for t in times:
-            s += str(t)
-        times = [int(s)]
-        s = ''
-        for d in distances:
-            s += str(d)
-        distances = [int(s)]
+        times = [''.join(times)]
+        distances = [''.join(distances)]
+    times = list(map(int, times))
+    distances = list(map(int, distances))
     tot = 1
     for race in range(len(times)):
-        t = times[race]
-        d = distances[race]
-        wins = 0
-        for charge in range(1, t):
-            dist = (t - charge) * charge
-            if dist > d:
-                wins += 1
-        tot *= wins
+        charge = find(0, times[race], times[race], distances[race])
+        tot *= times[race] - 2 * charge + 1
     return tot
 
 def main():

@@ -20,7 +20,7 @@ def format_input(inp: list[str]):
     patterns.append(pattern)
     return patterns
 
-def find_mirror(pattern, smudged, flipped = False):
+def find_mirror_horizontal(pattern, smudged):
     matches = {}
     near_matches = {}
     for i, row in enumerate(pattern[:-1]):
@@ -55,11 +55,14 @@ def find_mirror(pattern, smudged, flipped = False):
                     break
         else:
             if not smudged or near == 1:
-                return mirror * 100
-    if flipped:
-        raise ValueError
-    cols = [''.join(line[i] for line in pattern) for i in range(len(pattern[0]))]
-    return find_mirror(cols, smudged) // 100
+                return mirror
+
+def find_mirror(pattern, smudged):
+    v = find_mirror_horizontal(pattern, smudged)
+    if v is None:
+        cols = [''.join(line[i] for line in pattern) for i in range(len(pattern[0]))]
+        return find_mirror_horizontal(cols, smudged)
+    return v * 100
 
 def solve(inp, part, example):
     return sum(find_mirror(pattern, part == 2) for pattern in inp)

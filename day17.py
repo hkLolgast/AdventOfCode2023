@@ -1,5 +1,4 @@
 from copy import deepcopy
-from AoCHelpers.optimization import Pathfinder, ORTHOGONAL
 
 def parse_input(file = 'day17.txt'):
     with open(file) as f:
@@ -16,65 +15,55 @@ def format_input(inp: list[str]):
             map[(r, c)] = int(inp[r][c])
     return map, len(inp), len(inp[0])
 
-class CrucibleFinder(Pathfinder):
-    def __init__(self, *args, example = False, **kwargs):
-        self.example = example
-        super().__init__(*args, **kwargs)
-
-    def apply_move(self, state, move):
-        return state + [move]
-    
-    def is_valid_location(self, loc):
-        return loc in self.map
-
-    def is_valid_move(self, state, move):
-        if not self.is_valid_location(move):
-            return False
-        last = state[-4:]
-        if len(last) > 1:
-            if last[-2] == move:
-                return False
-        if len(last) == 4:
-            if all(loc[0] == move[0] for loc in last) or all(loc[1] == move[1] for loc in last):
-                return False
-        if state.count(move) == 2:
-            return False
-        return True
-        
-    def get_valid_moves(self, state):
-        return [move for move in self.neighbors(state[-1]) if self.is_valid_move(state, move)]
-
-    def score_state(self, state):
-        score = 10 * sum(state[-1])
-        for loc in state[1:]:
-            score -= self.map[loc]
-        return score
-
-    def get_state_hash(self, state):
-        return tuple(state)
-
-    def is_finished(self, state):
-        # if self.example:
-        #     print(state)
-        return state[-1] == self.solved_state_hash
-
 def solve(inp, part, example):
     map, max_row, max_col = inp
-    p = CrucibleFinder(map, [(0, 0)], (max_row - 1, max_col - 1), states_to_keep = 1000, find_all_solutions = True, max_steps = 2 * (max_row + max_col), example = example)
-    p.neighbors = ORTHOGONAL
-    sols = p.get_minimal_path()
-    min_loss = 966
-    best_path = None
-    for score, path in sols:
-        loss = 0
-        for loc in path[1:]:
-            loss += map[loc]
-        if loss < min_loss:
-            min_loss = loss
-            best_path = path
-    if example:
-        print(best_path)
-    return min_loss
+    min_paths = {loc + (d * l,): 10 * max_row * max_col for loc in map.keys() for d in '^>V<' for l in (range(1, 4) if part == 1 else range(4, 11))}
+    min_paths[(0, 0, '')] = 0
+    to_check = set()
+    to_check.add((0, 0, ''))
+    seen  = set()
+    while to_check:
+        row, col, past = to_check.pop()
+        seen.add((row, col, past))
+        for dir in range(4):
+            s = '^>V<'[dir]
+            if '^>V<'[(dir + 2) % 4] in past:
+                continue
+            if past.startswith(3 * s):
+                continue
+            new_s = past if s in past else ''
+            loc = [row, col]
+            new_score = min_paths[(row, col, past)]
+            for amount in range(3 if part == 1 else 10):
+                new_s += s
+                if len(new_s) == (4 if part == 1 else 11):
+                    break
+                if dir == 0:
+                    loc[0] -= 1
+                elif dir == 1:
+                    loc[1] += 1
+                elif dir == 2:
+                    loc[0] += 1
+                else:
+                    loc[1] -= 1
+                if tuple(loc) not in map:
+                    break
+                new_score += map[tuple(loc)]
+                if part == 2 and len(new_s) < 4:
+                    continue
+                key = tuple(loc) + (new_s,)
+                if new_score < min_paths[key]:
+                    for am2 in range((4 if part == 1 else 11) - len(new_s)):
+                        new_key = tuple(loc) + (new_s + s * am2,)
+                        if new_score < min_paths[new_key]:
+                            min_paths[new_key] = new_score
+                    to_check.add(key)
+    best = 10**99
+    for d in '^>V<':
+        for l in (range(1, 4) if part == 1 else range(4, 11)):
+            best = min(best, min_paths[max_row - 1, max_col - 1, d * l])
+    return best
+
 
 def main():
     example_input = format_input(parse_example())
